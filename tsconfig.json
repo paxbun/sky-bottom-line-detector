@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ES6",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "module": "ES6",
+    "moduleResolution": "node",
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "sourceMap": true,
+    "outDir": "dist",
+    "baseUrl": "src",
+    "paths": {
+      "*": ["node_modules/*"]
+    },
+    "removeComments": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["*.glsl"]
+}
