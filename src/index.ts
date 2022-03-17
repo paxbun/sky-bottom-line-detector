@@ -41,24 +41,21 @@ function presentSkyBottomLine() {
   outputCtx.clearRect(0, 0, output.width, output.height);
   outputCtx.drawImage(input, 0, 0);
 
-  function drawHorizontalLine(y: number, color: string) {
-    outputCtx.strokeStyle = color;
-    outputCtx.lineWidth = 5;
-    outputCtx.beginPath();
-    outputCtx.moveTo(0, y);
-    outputCtx.lineTo(output.width, y);
-    outputCtx.stroke();
+  function drawPixel(x: number, y: number, color: string) {
+    outputCtx.fillStyle = color;
+    outputCtx.fillRect(x - 1, y - 1, 2, 2);
   }
 
-  const [sky, bottom] = getSkyBottomLine();
-  drawHorizontalLine(sky, "#ff0000");
-  drawHorizontalLine(bottom, "#0000ff");
+  const [skyLine, bottomLine] = getSkyBottomLine();
+  for (let x = 0; x < input.width; ++x) {
+    drawPixel(x, skyLine[x], "#ff0000");
+    drawPixel(x, bottomLine[x], "#0000ff");
+  }
 }
 
 // const glCanvas = document.createElement("canvas");
-// glCanvas.width = 1;
-// glCanvas.height = input.height;
-
+// glCanvas.width = input.width;
+// glCanvas.height = 1;
 const glCanvas = document.getElementById("glCanvas")! as HTMLCanvasElement;
 const gl = glCanvas.getContext("webgl")!;
 if (!gl) {
@@ -107,7 +104,7 @@ gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
-function getSkyBottomLine(): [number, number] {
+function getSkyBottomLine(): [number[], number[]] {
   gl.clearColor(0, 0, 0, 0);
   gl.clear(gl.COLOR_BUFFER_BIT);
 
@@ -125,22 +122,15 @@ function getSkyBottomLine(): [number, number] {
   );
   gl.drawArrays(gl.TRIANGLES, 0, 6);
 
-  const pixels = new Uint8Array(1 * glCanvas.height * 4);
-  gl.readPixels(0, 0, 1, glCanvas.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+  const pixels = new Uint8Array(glCanvas.width * 4);
+  gl.readPixels(0, 0, glCanvas.width, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
 
-  const skyLine = (() => {
-    for (let i = glCanvas.height - 1; i >= 0; --i) {
-      if (pixels[4 * i + 3] > 0) return glCanvas.height - i;
-    }
-    return NaN;
-  })();
-
-  const bottomLine = (() => {
-    for (let i = 0; i < glCanvas.height; ++i) {
-      if (pixels[4 * i + 3] > 0) return glCanvas.height - i;
-    }
-    return NaN;
-  })();
+  const skyLine: number[] = [];
+  const bottomLine: number[] = [];
+  for (let i = 0; i < glCanvas.width; ++i) {
+    skyLine.push(pixels[i * 4 + 0] / 255 * input.height);
+    bottomLine.push(pixels[i * 4 + 1] / 255 * input.height);
+  }
 
   return [skyLine, bottomLine];
 }

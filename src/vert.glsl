@@ -3,5 +3,5 @@ varying vec4 v_position;
  
 void main() {
   gl_Position = a_position;
-  v_position.y = -a_position.y;
+  v_position = a_position;
 }
